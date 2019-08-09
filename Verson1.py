@@ -19,6 +19,7 @@ import warnings
 from pandas.core.common import SettingWithCopyWarning
 warnings.simplefilter(action='ignore', category=FutureWarning)
 warnings.simplefilter(action="ignore", category=SettingWithCopyWarning)
+logging.getLogger('tensorflow').disabled = True
 
 
 # set seed and path

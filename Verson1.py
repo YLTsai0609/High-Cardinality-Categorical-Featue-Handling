@@ -2,6 +2,7 @@
 # + {}
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import train_test_split, StratifiedKFold, KFold
 from sklearn.linear_model import LogisticRegression
@@ -252,9 +253,13 @@ print('Logistic Regression Regularized Target encoding:', te_cv_logit_score)
 print('Xgboost Regularized Target encoding:', te_cv_xgb_score)
 # # Embedding
 
+# # Embedding
+
+train_test_split?
+
 data_embedding_train = X_train.copy()
 data_embedding_val = X_val.copy()
-
+# data_inner_train = train_test_split(random_state=SEED, test_size = 0.1 * len(train))
 
 class EmbeddingMapping():
     """
@@ -262,11 +267,11 @@ class EmbeddingMapping():
     An instance of this class should be defined for each categorical variable we want to use.
     """
     def __init__(self, s : 'pd.Series') -> None:
-        # get a list of unique values
         values = s.unique().tolist()
         self.feature_name = s.name
-        # Set a dictionary mapping from values to integer value
+        # dictionary mapper
         self.embedding_dict = {value: int_value + 1 for int_value, value in enumerate(values)}
+        
         # The num_values will be used as the input_dim when defining the embedding layer.
         # we set unseen values as maximum value + 1 
         self.num_values = len(values) + 1
@@ -287,30 +292,166 @@ for feature in data_embedding_train.columns:
     data_embedding_val[f'{feature}'] = Mapper.mapping(data_embedding_val[f'{feature}'])
 
 # +
-LR = .002 # Learning rate
-EPOCHS = 50 # Default number of training epochs (i.e. cycles through the training data)
-hidden_units = (32,4) # Size of our hidden layers
-
+LR = .0001 # Learning rate
+EPOCHS = 20 # Default number of training epochs (i.e. cycles through the training data)
+hidden_units = (16,4) # Size of our hidden layers
+ 
 def auc(y_true, y_pred):
     auc = tf.metrics.auc(y_true, y_pred)[1]
     keras.backend.get_session().run(tf.local_variables_initializer())
     return auc
 
-def build_and_train_model(s, target, mapper_class, embedding_dimension=8,  
+# Google's paper tell us a good herustic size = number of category ** 0.25
+embedding_size_dict = {'RESOURCE': 9,
+                       'MGR_ID': 8 ,
+                      'ROLE_FAMILY_DESC': 6,
+                      'ROLE_FAMILY': 3,
+                      'ROLE_CODE':  4,
+                      }
+
+def build_and_train_model(df, target, embedding_size_dict=embedding_size_dict,  
                           verbose=2, epochs=EPOCHS):
     tf.set_random_seed(1); np.random.seed(1); random.seed(1)
+    def build_input_and_embedding_layer(s, embedding_size_dict = embedding_size_dict):
+        assert s.name in embedding_size_dict.keys()
+        input_layer = keras.Input(shape=(1,), name = s.name)
+        embedded_layer = keras.layers.Embedding(s.max() + 1, 
+                                               embedding_size_dict[s.name],
+                                               input_length=1, name = f'{s.name}_embedding')(input_layer)
+        return input_layer, embedded_layer
+    # Create embedding layer
+    emb_layer_list = []
+    input_layer_list = []
+    for feature in df.columns:
+        input_layer, embedded_layer = build_input_and_embedding_layer(df[feature], embedding_size_dict=embedding_size_dict)
+        input_layer_list.append(input_layer)
+        emb_layer_list.append(embedded_layer)
+    # concat
+    concatenated = keras.layers.Concatenate()(emb_layer_list)
+    out = keras.layers.Flatten()(concatenated)
+    
+    # hidden layers
+    for n_hidden in hidden_units:
+        out = keras.layers.Dense(n_hidden, activation='relu')(out)
+        
+    # output layer
+    out = keras.layers.Dense(1, activation='sigmoid', name='prediction')(out)
+    
+    # model
+    model = keras.Model(
+    inputs = input_layer_list,
+    outputs = out)
+#     model.summary()
+
+    model.compile(
+    tf.train.AdamOptimizer(LR),
+    loss='binary_crossentropy',
+    metrics=[auc],
+    )
+    # train it
+    # TODO FailedPreconditionError 
+    # This could mean that the variable was uninitialized. Not found: Resource localhost/dense_33/kernel/N10tensorflow3VarE does not exist.   
+    tf.initialize_all_variables()
+    callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3)
+    history = model.fit(
+    [df[feature] for feature in df.columns],
+    y_train,
+    batch_size= 32,
+    callbacks=[callback],
+    epochs=epochs,
+    verbose=verbose,
+    validation_split = .1
+    )
+    return history
+
+history = build_and_train_model(df = data_embedding_train,
+                      target = y_train,
+                      verbose = 2)      
+# + {}
+history_FS = (15, 5)
+def plot_history(histories, keys=('loss','auc',), train=True, figsize=history_FS):
+    if isinstance(histories, tf.keras.callbacks.History):
+        histories = [ ('', histories) ]
+        print(histories, type(histories))
+    print(histories, type(histories))
+    for key in keys:
+        plt.figure(figsize=history_FS)
+        for name, history in histories:
+            val = plt.plot(history.epoch, history.history['val_'+key],
+                           '--', label=str(name).title()+' Val')
+            
+            val = plt.plot(history.epoch, np.full(len(history.epoch), 1.0), color='k',linestyle='--', alpha=.2)
+            if train:
+                plt.plot(history.epoch, history.history[key], color=val[0].get_color(), alpha=.5,
+                         label=str(name).title()+' Train')
+                
+        plt.xlabel('Epochs')
+        plt.ylabel(key.replace('_',' ').title())
+        plt.legend()
+        plt.title(key)
+
+        plt.xlim([0,max(max(history.epoch) for (_, history) in histories)])
+
+plot_history([ 
+    ('embedding', history)
+])
 # -
 
+model = history.model
+embedding_vector_dict = {}
+embedding_vector_column = {}
+for feature in data_embedding_train.columns:
+    print(f' processing ... {feature}_embedding')
+    embedding_vector_dict[feature] = model.get_layer(f'{feature}_embedding').get_weights()[0]
+    embedding_vector_column[feature] = [f'{feature}_emb_{i}' for i in range(embedding_vector_dict[feature].shape[1])]
+print('Setup compelete')
 
 
+def get_embedding_vector(feature, feature_label):
+    return embedding_vector_dict[feature][feature_label - 1,:]
 
 
+# +
+# data_embedding_val['Ori_Des_pair_label'] = data_embedding_val['Ori_Des_pair_label'].astype(int)
 
+data_embedding_train = data_embedding_train.astype(int).reset_index(drop=True)
+data_embedding_val = data_embedding_val.astype(int).reset_index(drop=True)
 
+data_embedding_train_prepared = data_embedding_train.copy()
+data_embedding_val_prepared = data_embedding_val.copy()
 
+for feature in data_embedding_train.columns:
+    # train converting
+    tmp_train_features_df = pd.DataFrame(get_embedding_vector(feature, data_embedding_train[feature]),
+                                             columns=embedding_vector_column[f'{feature}'])
 
+    # test converting
+    tmp_test_features_df = pd.DataFrame(get_embedding_vector(feature,data_embedding_val[feature]),
+                                    columns=embedding_vector_column[f'{feature}'])
+    # train concat
+    data_embedding_train_prepared = pd.concat([data_embedding_train_prepared, tmp_train_features_df],
+                                               axis = 1)
+    # test concat
+    data_embedding_val_prepared = pd.concat([data_embedding_val_prepared, tmp_test_features_df],
+                                             axis = 1)
+    
+# -
 
+from pandas.core.common import flatten
+EMBEDDING_COLS = list(flatten(embedding_vector_column.values()))
 
+data_embedding_train_prepared[EMBEDDING_COLS].head()
 
-
-
+embedding_logit_score = get_score(LogReg_model, 
+                                  data_embedding_train_prepared[EMBEDDING_COLS],
+                                  y_train,
+                                  data_embedding_val_prepared[EMBEDDING_COLS],
+                                  y_val)
+embedding_xgb_score = get_score(xgb_model,
+                                data_embedding_train_prepared[EMBEDDING_COLS],
+                                y_train,
+                                data_embedding_val_prepared[EMBEDDING_COLS],
+                                y_val)
+print('Logistic Regression Embedding encoding:', embedding_logit_score)
+print('Xgboost Embedding encoding:', embedding_xgb_score)
+# # Embedding

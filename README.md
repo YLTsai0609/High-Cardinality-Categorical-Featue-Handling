@@ -6,12 +6,15 @@ E-mail : [yltsai0609@gmail.com](yltsai0609@gmail.com) <br>
 在高基數類別特徵的預測中，由於各項特徵對預測目標(target)有不同的影響，但又並非是有序特徵(ordinal feature)一般有順序性，因此對於Tree-based model來說非常容易造成overfitting。
 本篇實作了<br><br>
 A Preprocessing Scheme for High-Cardinality Categorical
-Attributes in Classification and Prediction Problems[[1]](#ref)<br>
-Entity Embeddings of Categorical Variables[[2]](#ref)兩種解決high cardinality的encoding方式，並以Label Encoding, One-Hot Encoding作為benchmark進行比較，並且用直觀的方法[[1]](#ref)<br><br>
+Attributes in Classification and Prediction Problems[[1]](#ref)
+
+Entity Embeddings of Categorical Variables[[2]](#ref)
+
+兩種解決high cardinality的encoding方式並以Label Encoding, One-Hot Encoding作為benchmark進行比較，並且用直觀的方法[[1]](#ref)<br><br>
 中所提到的Target Encoding(又稱mean encoding, likelihood encoding, impact encoding)其中的參數，你可以直接執行 main.py獲取結果，或是從display_notebook.ipynb閱讀實作的code。<br>
 
 ## Data
-
+**********************************************
 這次的示範資料集是從Kaggle上2013年的[Amazon員工訪問權限預測挑戰賽](https://www.kaggle.com/c/amazon-employee-access-challenge)中取得
 這個資料集，該資料集收集了Amazon公司中各個員工針對每個資源(例如網頁的logging)的訪問紀錄，當員工屬於能夠取得訪問權限時，系統卻不給訪問，又要向上申請才能取得權限，一來一往浪費的非常多時間，因此這場比賽希望能夠建構模型，減少員工訪問權限所需的人工流程，我們取出5個特徵如下 :
 
@@ -45,9 +48,9 @@ Entity Embeddings of Categorical Variables[[2]](#ref)兩種解決high cardinalit
  |ROLE_FAMILY|67|
  |ROLE_CODE|337|
  
- 
 
 ### Target encoding
+**********************************************
 #### how it work?
 Target encoding的中心思想為 :
 將類別特徵轉換為數值特徵，使用該特徵中每個種類對於target的mean值:
@@ -69,6 +72,7 @@ Target encoding的中心思想為 :
 如此一來我們將類別特徵透過target值轉成數值型特徵。
 
 #### estimated_mean / overall_mean
+**********************************************
 
 * overall mean : 在此例子中，如果我們完全不看ROLE_FAMILY的值，單純看有幾筆資料，幾個target = 1, 幾個 = 0
 則我們可以得到共9個值, 6個target = 1, 3個target = 0， <b>因此在不考慮ROLE_FAMILY帶有的資訊的情況下</b>， overall_mean = 0.66
@@ -126,6 +130,7 @@ count - min_sample_leaf = 1
 作者使用了第2種做法，這樣省去了noise_level參數的優化，且5-fold C.V.就能夠有足夠的通用性。
 
 ### Embedding
+**********************************************
 #### how it work?
 
 <h2 id=ref> Reference <h2>

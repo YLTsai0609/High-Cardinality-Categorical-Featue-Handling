@@ -3,14 +3,20 @@
 import numpy as np
 import pandas as pd
 import random
+from sklearn.metrics import roc_auc_score
+from sklearn.model_selection import train_test_split
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Dropout
+from tensorflow.keras.layers import Dropout
 import logging
 logging.getLogger('tensorflow').disabled = True
 
 
+def get_score(model, X, y, X_val, y_val):
+    model.fit(X, y)
+    y_pred = model.predict_proba(X_val)[:,1]
+    score = roc_auc_score(y_val, y_pred)
+    return score
 
 def TargetEncoder(train, test, ft, target, 
                    min_samples_leaf=1,
@@ -154,22 +160,26 @@ def build_and_train_model(df, target,
     inputs = input_layer_list,
     outputs = out)
 #     model.summary()
-
+    
     model.compile(
     tf.train.AdamOptimizer(LR),
     loss='binary_crossentropy',
     metrics=[auc],
     )
+    callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
+    X_train, X_val, y_train, y_val = train_test_split(df, target, test_size=0.1,
+                                                       random_state=SEED, stratify = target)
+
     tf.initialize_all_variables()
-    callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)
     history = model.fit(
-    [df[feature] for feature in df.columns],
-    target,
+    [X_train[feature] for feature in X_train.columns],
+    y_train,
     batch_size= 32,
     callbacks=[callback],
     epochs=epochs,
     verbose=verbose,
-    validation_split = .1
+    validation_data=([X_val[feature] for feature in X_val.columns],
+                    y_val)
     )
     return history
 

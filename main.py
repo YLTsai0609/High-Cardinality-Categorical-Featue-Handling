@@ -1,8 +1,7 @@
 # +
 import numpy as np
 import pandas as pd
-from sklearn.metrics import roc_auc_score
-from sklearn.model_selection import train_test_split, StratifiedKFold, KFold
+from sklearn.model_selection import train_test_split,StratifiedKFold, KFold
 from xgboost import XGBClassifier
 from pathlib import Path
 from pandas.core.common import SettingWithCopyWarning
@@ -10,8 +9,11 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 warnings.simplefilter(action="ignore", category=SettingWithCopyWarning)
 from sklearn.preprocessing import OneHotEncoder
-from preprocessing import TargetEncoder, EmbeddingMapping, build_and_train_model, get_embedding_vector
 from pandas.core.common import flatten
+
+from preprocessing import get_score, TargetEncoder, EmbeddingMapping,\
+build_and_train_model, get_embedding_vector
+
 SEED = 1
 ROOT = Path('.')
 TRAIN_FILE = ROOT / 'data/train.csv'
@@ -26,16 +28,9 @@ train = train[['RESOURCE', 'MGR_ID',
 
 # -
 
-# helper function
-def get_score(model, X, y, X_val, y_val):
-    model.fit(X, y)
-    y_pred = model.predict_proba(X_val)[:,1]
-    score = roc_auc_score(y_val, y_pred)
-    return score
-
 
 # splits train/val
-X_train, X_val, y_train, y_val = train_test_split(train, y, test_size=0.2, random_state=SEED)
+X_train, X_val, y_train, y_val = train_test_split(train, y, test_size=0.2, random_state=SEED, stratify = y)
 
 # +
 # Preprocessing
@@ -116,7 +111,7 @@ embedding_size_dict = {'RESOURCE': 9,
 
 LR = .00005
 EPOCHS = 80
-hidden_units = (16,4)
+hidden_units = (8,8)
 print('-'*60)
 print('Perform NN - Embedding')
 print('-'*60)
@@ -138,7 +133,7 @@ for feature in data_embedding_train.columns:
     embedding_vector_column[feature] = [f'{feature}_emb_{i}' for i in range(embedding_vector_dict[feature].shape[1])]
 print('Setup compelete')
 
-
+# drop_index to keep pd.concat works
 data_embedding_train = data_embedding_train.astype(int).reset_index(drop=True)
 data_embedding_val = data_embedding_val.astype(int).reset_index(drop=True)
 

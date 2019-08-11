@@ -1,7 +1,8 @@
 # High-Cardinality-Cetegorical-Featue-Handling
-E-mail : [yltsai0609@gmail.com](yltsai0609@gmail.com) <br>
 **********************************************
+E-mail : [yltsai0609@gmail.com](yltsai0609@gmail.com) <br>
 ## Introduction
+**********************************************
 類別特徵(nominal feature)，有的特徵會有非常多類別，我們稱之為高基數類別特徵(high cardinality nomial feature)，常見的包含(地區，行政區，ip位置，會員id，會員所屬校區，甚至是ubike在台北市的站點等)。<br>
 在高基數類別特徵的預測中，由於各項特徵對預測目標(target)有不同的影響，但又並非是有序特徵(ordinal feature)一般有順序性，因此對於Tree-based model來說非常容易造成overfitting。
 本篇實作了<br><br>
@@ -10,8 +11,7 @@ Attributes in Classification and Prediction Problems[[1]](#ref)
 
 Entity Embeddings of Categorical Variables[[2]](#ref)
 
-兩種解決high cardinality的encoding方式並以Label Encoding, One-Hot Encoding作為benchmark進行比較，並且用直觀的方法[[1]](#ref)<br><br>
-中所提到的Target Encoding(又稱mean encoding, likelihood encoding, impact encoding)其中的參數，你可以直接執行 main.py獲取結果，或是從display_notebook.ipynb閱讀實作的code。<br>
+兩種解決high cardinality的encoding方式並以Label Encoding, One-Hot Encoding作為benchmark進行比較，並且用解釋了[[1]](#ref)中所提到的Target Encoding(又稱mean encoding, likelihood encoding, impact encoding)其中的參數，你可以直接執行 main.py獲取結果，或是從display_notebook.ipynb閱讀實作的code。<br>
 
 ## Data
 **********************************************
@@ -52,6 +52,7 @@ Entity Embeddings of Categorical Variables[[2]](#ref)
 ### Target encoding
 **********************************************
 #### how it work?
+
 Target encoding的中心思想為 :
 將類別特徵轉換為數值特徵，使用該特徵中每個種類對於target的mean值:
 例如特徵ROLE_FAMILY
@@ -76,6 +77,7 @@ Target encoding的中心思想為 :
 
 * overall mean : 在此例子中，如果我們完全不看ROLE_FAMILY的值，單純看有幾筆資料，幾個target = 1, 幾個 = 0
 則我們可以得到共9個值, 6個target = 1, 3個target = 0， <b>因此在不考慮ROLE_FAMILY帶有的資訊的情況下</b>， overall_mean = 0.66
+
 * estimated mean : 
 我們可以從上述例子看到，ROLE_FAMILY中，118424共出現5次，22434出現3次，1855則出現1次，
 <b>考慮ROLE_FAMILY帶有的情況下</b>
@@ -87,6 +89,7 @@ Target encoding的中心思想為 :
 |1855|0|
 
 * 該相信哪個?
+
 我們可以從上述例子看到，ROLE_FAMILY中，118424共出現5次，22434出現3次，1855則出現1次，
 我們無從判斷1855的target value是否是運氣成份使然, 還是真的是1，因此，當種類出現的次數(count越少)
 我們越傾向不相信該mean值, 轉而相信全局平均值，顯然，我們可以透過種類出現的次數，來決定我們究竟該多相信estimated mean <br>
@@ -103,6 +106,7 @@ Target encoding的中心思想為 :
 我們可以針對其中幾個特例點提供一數學靈感:
 
 * 當 min_sample_leaf = counts 時， smoothing_factor = 0.5，也就是說 min_sample_leaf就是該反曲點，當count > min_sample_leaf，smoothing_factor > 0.5，逐步增加至1(意即相信estimated_mean)，反之，則smoothing_factor降至0(意即相信overall_mean)
+
 * smoothing_slope --> 在count大於min_sample_leaf一點點時，smoothing_slope將會決定smoothing_factor增加了多少，如下表所示
 
 count - min_sample_leaf = 1
@@ -112,7 +116,7 @@ count - min_sample_leaf = 1
 |1| 0.73|
 |2| 0.62|
 |3| 0.58|
-|4|| 0.56|
+|4| 0.56|
 |-1| 0.26| 
 |-2| 0.37|
 
@@ -134,7 +138,8 @@ count - min_sample_leaf = 1
 #### how it work?
 
 <h2 id=ref> Reference <h2>
-[1] [A Preprocessing Scheme for High-Cardinality Categorical
-Attributes in Classification and Prediction Problems](http://delivery.acm.org/10.1145/510000/507538/p27-micci-barreca.pdf?ip=180.217.111.180&id=507538&acc=ACTIVE%20SERVICE&key=CB7B71C8A2C31385%2E18DEC3E5D9CB506C%2E4D4702B0C3E38B35%2E4D4702B0C3E38B35&__acm__=1565526487_e186502b85ceb5db2c3bbc5efeb0c6e3)
+ 
+[A Preprocessing Scheme for High-Cardinality Categorical Attributes in Classification and Prediction Problems](http://delivery.acm.org/10.1145/510000/507538/p27-micci-barreca.pdf?ip=180.217.111.180&id=507538&acc=ACTIVE%20SERVICE&key=CB7B71C8A2C31385%2E18DEC3E5D9CB506C%2E4D4702B0C3E38B35%2E4D4702B0C3E38B35&__acm__=1565526487_e186502b85ceb5db2c3bbc5efeb0c6e3)
+ 
 [Entity Embeddings of Categorical Variables](https://arxiv.org/pdf/1604.06737.pdf)
 

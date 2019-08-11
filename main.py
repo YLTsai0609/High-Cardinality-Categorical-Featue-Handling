@@ -53,7 +53,7 @@ for feature in data_te_train.columns:
     data_te_train[f'{feature}_te'], data_te_val[f'{feature}_te'] = TargetEncoder(data_te_train,
                                                                            X_val, ft=feature,
                                                                            target=y_train,
-                                                                      min_samples_leaf=3, smoothing=2)
+                                                                      min_samples_leaf=3, smoothing_slope=2)
 # Regularized Target
 data_te_cv_train = X_train.copy()
 data_te_cv_val = X_val.copy()
@@ -78,14 +78,14 @@ for (trn_idx, val_idx), (_, test_idx) in zip(FOLDS.split(data_te_cv_train, y_tra
                                                                                ft=feature,
                                                                                target=y_train_te,
                                                                                min_samples_leaf=3,
-                                                                               smoothing=2,
+                                                                               smoothing_slope=2,
                                                                                verbose=False)
         _, X_test_te[f'{feature}_te'] =TargetEncoder(X_train_te,
                                                     X_test_te,
                                                     ft=feature,
                                                     target=y_train_te,
                                                     min_samples_leaf=3,
-                                                    smoothing=2,
+                                                    smoothing_slope=2,
                                                     verbose=False)
     
     oof_trn_list.append(X_val_te.reset_index(drop=True))

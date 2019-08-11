@@ -68,7 +68,7 @@ Target encoding的中心思想為 :
 透過以上我們可以發現 ROLE_FAMILY 為 118424時 target 都會 = 1，22434則是一個為1, 一個為0，因此平均為0.5，
 如此一來我們將類別特徵透過target值轉成數值型特徵。
 
-#### estimated mean / overall mean
+#### estimated_mean / overall_mean
 
 * overall mean : 在此例子中，如果我們完全不看ROLE_FAMILY的值，單純看有幾筆資料，幾個target = 1, 幾個 = 0
 則我們可以得到共9個值, 6個target = 1, 3個target = 0， <b>因此在不考慮ROLE_FAMILY帶有的資訊的情況下</b>， overall_mean = 0.66
@@ -93,9 +93,37 @@ Target encoding的中心思想為 :
 論文中提到透過兩個參數來決定smoothing_factor
 
 `smoothing_factor = 1 / (1 + np.exp(- (counts - min_samples_leaf) / smoothing_slope))`
-這個函數長得很像Logistic Regression中的sigmoid函數, 我們可以針對其中幾個特例點
+這個函數長得很像Logistic Regression中的sigmoid函數<br>
+![show image](sigmoid_function.png)
 
-https://www.youtube.com/watch?v=irkV4sYExX4&fbclid=IwAR3nd7_anJmxs3Esa096nlEr3-DDLGMoH5wIZD8W4BXU7ErZnoSDSEwhNe8
+我們可以針對其中幾個特例點提供一數學靈感:
+
+* 當 min_sample_leaf = counts 時， smoothing_factor = 0.5，也就是說 min_sample_leaf就是該反曲點，當count > min_sample_leaf，smoothing_factor > 0.5，逐步增加至1(意即相信estimated_mean)，反之，則smoothing_factor降至0(意即相信overall_mean)
+* smoothing_slope --> 在count大於min_sample_leaf一點點時，smoothing_slope將會決定smoothing_factor增加了多少，如下表所示
+
+count - min_sample_leaf = 1
+
+|smoothing_slope|smoothing_factor|
+|---------------|----------------|
+|1| 0.73|
+|2| 0.62|
+|3| 0.58|
+|4|| 0.56|
+|-1| 0.26| 
+|-2| 0.37|
+
+* 此外，如果我們想要以overall_mean作為benchmark比較，令smoothing_slope = - infinilty 則 smoothing_factor -> 0
+* 而，若smoothing_slope --> 0 則 smoothing_facotor -> 0.5, 且函數會變為一條直線(意即count不管多少，我們estimated_mean即overall_mean權重各半)
+
+* 如果你還想要看更多這個函數的一些操作，可以看[這裡](https://www.youtube.com/watch?v=irkV4sYExX4&fbclid=IwAR3nd7_anJmxs3Esa096nlEr3-DDLGMoH5wIZD8W4BXU7ErZnoSDSEwhNe8)的13:47 ~ 16:32。
+#### Encoding的正則化
+
+透過上述的smoothing_mean來進行編碼之後，每個類別都會是一樣的target mean，這不太符合統計抽樣的原則，因為統計抽樣有其隨機性，而我們的encoding方式沒有，同時之間，我們借用了target的值進行編碼，overfitting的機會極高，因此我們需要Regularization，常見的方法 : 
+
+* 加入noise_level : 即模擬原本的抽樣，加入高斯噪聲
+* Cross-validation : 不一次計算全部的estimated_mean，反而使用部分的值抽取estimated_mean，在map到out-of-fold之中，重複k次
+
+作者使用了第2種做法，這樣省去了noise_level參數的優化，且5-fold C.V.就能夠有足夠的通用性。
 
 ### Embedding
 #### how it work?

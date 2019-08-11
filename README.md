@@ -1,8 +1,9 @@
 # High-Cardinality-Cetegorical-Featue-Handling
-**********************************************
+
 E-mail : [yltsai0609@gmail.com](yltsai0609@gmail.com) <br>
+
 ## Introduction
-**********************************************
+
 類別特徵(nominal feature)，有的特徵會有非常多類別，我們稱之為高基數類別特徵(high cardinality nomial feature)，常見的包含(地區，行政區，ip位置，會員id，會員所屬校區，甚至是ubike在台北市的站點等)。<br>
 在高基數類別特徵的預測中，由於各項特徵對預測目標(target)有不同的影響，但又並非是有序特徵(ordinal feature)一般有順序性，因此對於Tree-based model來說非常容易造成overfitting。
 本篇實作了<br><br>
@@ -14,7 +15,7 @@ Entity Embeddings of Categorical Variables[[2]](#ref)
 兩種解決high cardinality的encoding方式並以Label Encoding, One-Hot Encoding作為benchmark進行比較，並且用解釋了[[1]](#ref)中所提到的Target Encoding(又稱mean encoding, likelihood encoding, impact encoding)其中的參數，你可以直接執行 main.py獲取結果，或是從display_notebook.ipynb閱讀實作的code。<br>
 
 ## Data
-**********************************************
+
 這次的示範資料集是從Kaggle上2013年的[Amazon員工訪問權限預測挑戰賽](https://www.kaggle.com/c/amazon-employee-access-challenge)中取得
 這個資料集，該資料集收集了Amazon公司中各個員工針對每個資源(例如網頁的logging)的訪問紀錄，當員工屬於能夠取得訪問權限時，系統卻不給訪問，又要向上申請才能取得權限，一來一往浪費的非常多時間，因此這場比賽希望能夠建構模型，減少員工訪問權限所需的人工流程，我們取出5個特徵如下 :
 
@@ -69,7 +70,7 @@ Target encoding的中心思想為 :
 |118424|1|1|
 |22434|0|0.33|
 
-透過以上我們可以發現 ROLE_FAMILY 為 118424時 target 都會 = 1，22434則是一個為1, 一個為0，因此平均為0.5，
+透過以上我們可以發現 ROLE_FAMILY 為 118424時 target 都會 = 1，22434則是1個為1, 2個為0，因此平均為0.33，
 如此一來我們將類別特徵透過target值轉成數值型特徵。
 
 #### estimated_mean / overall_mean
@@ -124,7 +125,9 @@ count - min_sample_leaf = 1
 * 而，若smoothing_slope --> 0 則 smoothing_facotor -> 0.5, 且函數會變為一條直線(意即count不管多少，我們estimated_mean即overall_mean權重各半)
 
 * 如果你還想要看更多這個函數的一些操作，可以看[這裡](https://www.youtube.com/watch?v=irkV4sYExX4&fbclid=IwAR3nd7_anJmxs3Esa096nlEr3-DDLGMoH5wIZD8W4BXU7ErZnoSDSEwhNe8)的13:47 ~ 16:32。
+
 #### Encoding的正則化
+**********************************************
 
 透過上述的smoothing_mean來進行編碼之後，每個類別都會是一樣的target mean，這不太符合統計抽樣的原則，因為統計抽樣有其隨機性，而我們的encoding方式沒有，同時之間，我們借用了target的值進行編碼，overfitting的機會極高，因此我們需要Regularization，常見的方法 : 
 

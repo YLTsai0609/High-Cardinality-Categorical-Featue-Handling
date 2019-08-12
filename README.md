@@ -156,7 +156,7 @@ count - min_sample_leaf = 1
 
 * 如果你還想要看更多這個函數的一些操作，可以看[這裡](https://www.youtube.com/watch?v=irkV4sYExX4&fbclid=IwAR3nd7_anJmxs3Esa096nlEr3-DDLGMoH5wIZD8W4BXU7ErZnoSDSEwhNe8)的13:47 ~ 16:32。
 
-#### Encoding的正則化
+#### Target-Encoding的正則化
 **********************************************
 
 透過上述的smoothing_mean來進行編碼之後，每個類別都會是一樣的target mean，這不太符合統計抽樣的原則，因為統計抽樣有其隨機性，而我們的encoding方式沒有，同時之間，我們借用了target的值進行編碼，overfitting的機會極高，因此我們需要regularization，常見的方法 : 
@@ -191,9 +191,9 @@ dog以及puppy基本上都是狗，dog, puppy之間的距離應該要比dog, cat
 
 <h2 id=ref> Reference <h2>
  
-[A Preprocessing Scheme for High-Cardinality Categorical Attributes in Classification and Prediction Problems](http://delivery.acm.org/10.1145/510000/507538/p27-micci-barreca.pdf?ip=180.217.111.180&id=507538&acc=ACTIVE%20SERVICE&key=CB7B71C8A2C31385%2E18DEC3E5D9CB506C%2E4D4702B0C3E38B35%2E4D4702B0C3E38B35&__acm__=1565526487_e186502b85ceb5db2c3bbc5efeb0c6e3)
+* [A Preprocessing Scheme for High-Cardinality Categorical Attributes in Classification and Prediction Problems](http://delivery.acm.org/10.1145/510000/507538/p27-micci-barreca.pdf?ip=180.217.111.180&id=507538&acc=ACTIVE%20SERVICE&key=CB7B71C8A2C31385%2E18DEC3E5D9CB506C%2E4D4702B0C3E38B35%2E4D4702B0C3E38B35&__acm__=1565526487_e186502b85ceb5db2c3bbc5efeb0c6e3)
  
-[Entity Embeddings of Categorical Variables](https://arxiv.org/pdf/1604.06737.pdf)
+* [Entity Embeddings of Categorical Variables](https://arxiv.org/pdf/1604.06737.pdf)
 
-[Embedding-Kaggle-micro-course](https://www.kaggle.com/learn/embeddings)
+* [Embedding-Kaggle-micro-course](https://www.kaggle.com/learn/embeddings)
 

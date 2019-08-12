@@ -4,7 +4,15 @@ E-mail : [yltsai0609@gmail.com](yltsai0609@gmail.com) <br>
 
 ## Requirements
 
+```
+numpy==1.16.4
+pandas==0.24.2
+tensorflow==1.14.0
+scikit-learn==0.21.3
+xgboost==0.90
+```
 
+`pip install -r requirements`
 
 ## Introduction
 
@@ -119,7 +127,7 @@ Target encoding的中心思想為 :
 
 `smoothing_factor = 1 / (1 + np.exp(- (counts - min_samples_leaf) / smoothing_slope))`
 這個函數長得很像Logistic Regression中的sigmoid函數<br>
-![show image](./sigmoid_function.png)
+<img src="./images/sigmoid_function.png" alt="show image">
 
 我們可以針對其中幾個特例點提供一數學靈感:
 
@@ -174,7 +182,7 @@ dog以及puppy基本上都是狗，dog, puppy之間的距離應該要比dog, cat
 
 基於上述這樣的道理，2016年的論文Entity Embeddings of Categorical Variables[[2]](#ref)中就利用了Kaggle上的[Rossman Store Sales Competition](https://www.kaggle.com/c/rossmann-store-sales)，說明了Embedding對於high-cardinality的處理普遍對各式各樣的機器學習演算法都是有效的，在本文中，採取以下方式實作：
 
-![show image](./Embedding.png)
+<img src="./images/Embedding.png" alt="show image">
 
 在這裡作者會將5個high-cardinality特徵，One-Hot之後，經過Embedding layer萃取，接著將5項特徵的Embedding layer，串接起來，接後面的Dense layer，進行神經網路的訓練，訓練完之後，再取出每個特徵的Embedding layer，對5個high cardinality特徵進行encode。
 至於Embedding的neurons要設定成幾個論文中提到可以當作hyperparameter來調參。

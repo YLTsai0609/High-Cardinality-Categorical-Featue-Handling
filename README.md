@@ -191,7 +191,7 @@ dog以及puppy基本上都是狗，dog, puppy之間的距離應該要比dog, cat
 
 <h2 id=ref> Reference <h2>
  
-* [A Preprocessing Scheme for High-Cardinality Categorical Attributes in Classification and Prediction Problems](http://delivery.acm.org/10.1145/510000/507538/p27-micci-barreca.pdf?ip=180.217.111.180&id=507538&acc=ACTIVE%20SERVICE&key=CB7B71C8A2C31385%2E18DEC3E5D9CB506C%2E4D4702B0C3E38B35%2E4D4702B0C3E38B35&__acm__=1565526487_e186502b85ceb5db2c3bbc5efeb0c6e3)
+* [A Preprocessing Scheme for High-Cardinality Categorical Attributes in Classification and Prediction Problems](http://helios.mm.di.uoa.gr/~rouvas/ssi/sigkdd/sigkdd.vol3.1/barreca.pdf?source=post_page---------------------------)
  
 * [Entity Embeddings of Categorical Variables](https://arxiv.org/pdf/1604.06737.pdf)
 

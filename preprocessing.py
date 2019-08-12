@@ -12,18 +12,25 @@ import logging
 logging.getLogger('tensorflow').disabled = True
 
 
-def get_score(model, X, y, X_val, y_val):
+def get_score(model : 'sklearn-model', 
+              X : 'pd.DataFrame', 
+              y : 'pd.Series',
+              X_val : 'pd.DataFrame', 
+              y_val : 'pd.Series') -> float :
     model.fit(X, y)
     y_pred = model.predict_proba(X_val)[:,1]
     score = roc_auc_score(y_val, y_pred)
     return score
 
-def TargetEncoder(train, test, ft, target, 
-                   min_samples_leaf=1,
-                   smoothing_slope=1,
-                   noise_level=0,
-                   handle_missing='informed', handle_unseen='overall_mean',
-                   verbose=True):
+def TargetEncoder(train : 'pd.DataFrame',
+                  test : 'pd.DataFrame',
+                  ft : str,
+                  target : 'pd.Series', 
+                  min_samples_leaf=1,
+                  smoothing_slope=1,
+                  noise_level=0,
+                  handle_missing='informed', handle_unseen='overall_mean',
+                  verbose=True) -> 'train - pd.Series, test, - pd.Series' :
     '''
         Tree model 處理 high cardinality特徵的方法, (例如, 地區, 地址, IP...)
         由於特徵非線性且基數高，導致Tree model非常容易overfitting，
@@ -38,16 +45,6 @@ def TargetEncoder(train, test, ft, target,
         smoothing_slope 為曲線從反曲點趨近於0和1的增加量 :
         當smoothing_slope -> infinity, smoothing_factor = 0.5
         當smoothing_slope -> 0 smoothing_factor -> step function
-        
-    :param train: pd.DataFrame
-    :param test: pd.DataFrame 
-    :param ft: string 
-    :param target : pd.Series with target name
-    :param noise_level: float  noise level
-    :param handle_missing: string 'overall_mean','informed'
-    :param handle_unseen: string 'overall_mean','return_nan'
-    :param verbose: bool, check the unseen in testing set
-    :return: train - pd.Series, test, - pd.Series target encoding result
     
     '''
 
@@ -108,7 +105,7 @@ class EmbeddingMapping():
         # we set unseen values as maximum value + 1 
         self.num_values = len(values) + 1
 
-    def mapping(self,s : 'pd.Series', verbose = True) -> None:
+    def mapping(self,s : 'pd.Series', verbose = True) -> 'pd.Series':
         tmp_series = s.map(self.embedding_dict)
         unseen_ratio = round(tmp_series.isnull().sum() / len(s), 3)
         if verbose:
@@ -119,22 +116,32 @@ class EmbeddingMapping():
 
 
 
-def build_and_train_model(df, target,  
-                          verbose, hidden_units, epochs, LR,
-                         embedding_size_dict, SEED):
+def build_and_train_model(df : 'pd.DataFrame',
+                         target : 'pd.Series',  
+                         verbose : int,
+                         hidden_units : tuple,
+                         epochs : int,
+                         LR : float,
+                         embedding_size_dict : dict,
+                         SEED : int) -> 'tf.keras.callbacks.History' :
     tf.set_random_seed(SEED); np.random.seed(SEED); random.seed(SEED)
     
-    def auc(y_true, y_pred):
+    def auc(y_true : 'np.array', y_pred : 'np.array') -> float:
         auc = tf.metrics.auc(y_true, y_pred)[1]
         keras.backend.get_session().run(tf.local_variables_initializer())
         return auc
 
-    def build_input_and_embedding_layer(s, embedding_size_dict ):
+    def build_input_and_embedding_layer(
+        s : 'pd.Series',
+        embedding_size_dict : dict) ->'''input_layer : tf.tensor,
+                                         embedded_layer : tf.tensor''' :
         assert s.name in embedding_size_dict.keys()
         input_layer = keras.Input(shape=(1,), name = s.name)
-        embedded_layer = keras.layers.Embedding(s.max() + 1, 
-                                               embedding_size_dict[s.name],
-                                               input_length=1, name = f'{s.name}_embedding')(input_layer)
+        embedded_layer = keras.layers.Embedding(
+            s.max() + 1, 
+            embedding_size_dict[s.name],
+            input_length=1, name = f'{s.name}_embedding'
+            )(input_layer)
         return input_layer, embedded_layer
     
     # Create embedding layer
@@ -183,6 +190,8 @@ def build_and_train_model(df, target,
     )
     return history
 
-def get_embedding_vector(feature, feature_label, embedding_vector_dict):
+def get_embedding_vector(feature : str, 
+                         feature_label : int,
+                         embedding_vector_dict : dict) -> 'np.array':
     return embedding_vector_dict[feature][feature_label - 1,:]
 

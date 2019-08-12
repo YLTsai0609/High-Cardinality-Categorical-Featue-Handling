@@ -16,7 +16,7 @@ xgboost==0.90
 
 ## Introduction
 
-類別特徵(nominal feature)，有的特徵會有非常多類別，我們稱之為高基數類別特徵(high cardinality nomial feature)，常見的包含(地區，行政區，ip位置，會員id，會員所屬校區，甚至是ubike在台北市的站點等)。<br>
+類別特徵(nominal feature)，有的特徵會有非常多類別，我們稱之為高基數類別特徵(high cardinality nomial feature)，常見的包含(地區，行政區，ip位置，會員id，會員所屬校區，商品id，影片id，甚至是ubike在台北市的站點等)。<br>
 在高基數類別特徵的預測中，由於各項特徵對預測目標(target)有不同的影響，但又並非是有序特徵(ordinal feature)一般有順序性，因此對於Tree-based model來說非常容易造成overfitting。
 本篇實作了
 
@@ -30,8 +30,8 @@ xgboost==0.90
 
 在Tree-Based的模型中我們使用XGBoost並且沒有進行任何調參 : 
 
-|Encoding|AUC on validtion|
-|-------|----------------|
+|Encoding|AUC on validation set|
+|-------|----------------------|
 |One-Hot|0.732|
 |Label|0.729|
 |Embedding|0.765|

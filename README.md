@@ -10,7 +10,8 @@ E-mail : [yltsai0609@gmail.com](yltsai0609@gmail.com) <br>
 
 類別特徵(nominal feature)，有的特徵會有非常多類別，我們稱之為高基數類別特徵(high cardinality nomial feature)，常見的包含(地區，行政區，ip位置，會員id，會員所屬校區，甚至是ubike在台北市的站點等)。<br>
 在高基數類別特徵的預測中，由於各項特徵對預測目標(target)有不同的影響，但又並非是有序特徵(ordinal feature)一般有順序性，因此對於Tree-based model來說非常容易造成overfitting。
-本篇實作了<br><br>
+本篇實作了
+
 * A Preprocessing Scheme for High-Cardinality Categorical Attributes in Classification and Prediction Problems[[1]](#ref)
 
 * Entity Embeddings of Categorical Variables[[2]](#ref)
@@ -123,9 +124,7 @@ Target encoding的中心思想為 :
 我們可以針對其中幾個特例點提供一數學靈感:
 
 * 當 min_sample_leaf = counts 時， smoothing_factor = 0.5，也就是說 min_sample_leaf就是該反曲點，
-
   > 當count > min_sample_leaf，smoothing_factor > 0.5，逐步增加至1(意即相信estimated_mean)，
-  
   > 反之，則smoothing_factor降至0(意即相信overall_mean)
 
 * smoothing_slope --> 在count大於min_sample_leaf一點點時，smoothing_slope將會決定smoothing_factor增加了多少，如下表所示
@@ -141,9 +140,10 @@ count - min_sample_leaf = 1
 |-1| 0.26| 
 |-2| 0.37|
 
-* 此外，如果我們想要以overall_mean作為benchmark比較，令smoothing_slope = - infinilty 則 smoothing_factor -> 0
+* 此外，如果我們想要以overall_mean作為benchmark比較
+ > 若smoothing_slope = - infinilty 則 smoothing_factor -> 0
 
-* 而，若smoothing_slope --> 0 則 smoothing_facotor -> 0.5，且函數會變為一條直線
+* 若smoothing_slope --> 0 則 smoothing_facotor -> 0.5，且函數會變為一條直線
  > (意即count不管多少，我們estimated_mean即overall_mean權重各半)
 
 * 如果你還想要看更多這個函數的一些操作，可以看[這裡](https://www.youtube.com/watch?v=irkV4sYExX4&fbclid=IwAR3nd7_anJmxs3Esa096nlEr3-DDLGMoH5wIZD8W4BXU7ErZnoSDSEwhNe8)的13:47 ~ 16:32。

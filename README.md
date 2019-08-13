@@ -14,6 +14,24 @@ xgboost==0.90
 
 `pip install -r requirements`
 
+## Conclusion
+
+透過target-encoding以及embedding，可以有效地減輕high-cardinality特徵在tree-based模型中overfitting的情況，如下表所示 : 
+
+在tree-based的模型中我們使用XGBoost並且沒有進行任何調參 : 
+
+|Encoding|AUC on validation set|
+|-------|----------------------|
+|One-Hot|0.732|
+|Label|0.729|
+|Embedding|0.765|
+|Target|0.844|
+|Regularized Target|0.856|
+
+* target-encoding效果 > embedding效果 ? 
+> 這樣的結果並不是通用性在每個資料集，在每個資料集上做實驗仍然是一個較穩當的做法。
+
+
 ## Introduction
 
 類別特徵(nominal feature)，有的特徵會有非常多類別，我們稱之為高基數類別特徵(high cardinality nomial feature)，常見的包含(地區，行政區，ip位置，會員id，會員所屬校區，商品id，影片id，甚至是ubike在台北市的站點等)。<br>
@@ -26,19 +44,6 @@ xgboost==0.90
 
 兩種解決high cardinality的encoding方式並以Label Encoding, One-Hot Encoding作為benchmark進行比較，並且用解釋了[[1]](#ref)中所提到的Target Encoding(又稱mean encoding, likelihood encoding, impact encoding)其中的參數，你可以直接執行 main.py獲取結果，或是從display_notebook.ipynb閱讀實作的code。<br>
 
-## Conclusion
-
-在Tree-Based的模型中我們使用XGBoost並且沒有進行任何調參 : 
-
-|Encoding|AUC on validation set|
-|-------|----------------------|
-|One-Hot|0.732|
-|Label|0.729|
-|Embedding|0.765|
-|Target|0.844|
-|Regularized Target|0.856|
-
-* 這樣的結果並不是通用性在每個資料集，在每個資料集上做實驗仍然是一個較穩當的做法。
 ## Data
 
 這次的示範資料集是從Kaggle上2013年的[Amazon員工訪問權限預測挑戰賽](https://www.kaggle.com/c/amazon-employee-access-challenge)中取得
@@ -75,11 +80,11 @@ xgboost==0.90
  |ROLE_CODE|337|
  
 
-### Target encoding
+### Target-Encoding
 **********************************************
 #### how it work?
 
-Target encoding的中心思想為 :
+target-encoding的中心思想為 :
 將類別特徵轉換為數值特徵，使用該特徵中每個種類對於target的mean值:
 例如特徵ROLE_FAMILY
 
@@ -162,7 +167,7 @@ count - min_sample_leaf = 1
 透過上述的smoothing_mean來進行編碼之後，每個類別都會是一樣的target mean，這不太符合統計抽樣的原則，因為統計抽樣有其隨機性，而我們的encoding方式沒有，同時之間，我們借用了target的值進行編碼，overfitting的機會極高，因此我們需要regularization，常見的方法 : 
 
 * 加入noise_level : 即模擬原本的抽樣，加入高斯噪聲
-* Cross-validation : 不一次計算全部的estimated_mean，反而使用部分的值抽取estimated_mean，在map到out-of-fold之中，重複k次
+* cross-validation(C.V.) : 不一次計算全部的estimated_mean，反而使用部分的值抽取estimated_mean，在map到out-of-fold之中，重複k次
 
 作者使用了第2種做法，這樣省去了noise_level參數的優化，且5-fold C.V.就能夠有足夠的通用性。
 

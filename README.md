@@ -69,6 +69,13 @@ xgboost==0.90
  
  >> 0 : RESOURCE 禁止訪問
  
+ 不平衡比例
+ 
+ |positive|negtive|
+ |--------|-------|
+ |30872|1897|
+ |16.24|1|
+ 
  各特徵基數值
  
  |feature|count of unqiues|
